@@ -3,6 +3,7 @@ import { BulbOutlined, RightCircleOutlined } from "@ant-design/icons";
 import TellorLogoDark from "../../assets/Tellor__Logo--Dark.png";
 import TellorLogoLight from "../../assets/Tellor__Logo--Light.png";
 import styled from "styled-components";
+import { Web3SignIn } from "../shared/Web3SignIn";
 
 const StyledHeader = styled.div`
   display: flex;
@@ -130,6 +131,10 @@ export default class Navigation extends Component {
     document.documentElement.style.setProperty(`--${name}`, value);
   };
 
+  truncateAddr(addr) {
+    return addr.slice(0, 6) + '...';
+  };
+
   render() {
     return (
       <StyledHeader>
@@ -148,6 +153,11 @@ export default class Navigation extends Component {
           >
             Dispute Center <RightCircleOutlined/>
           </a>
+          {!this.props.currentUser ? (
+            <Web3SignIn setCurrentUser={this.props.setCurrentUser} />
+          ) : (
+            <span>{this.truncateAddr(this.props.currentUser.username)}</span>
+          )}
         </StyledHeaderNav>
       </StyledHeader>
     );

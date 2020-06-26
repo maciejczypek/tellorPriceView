@@ -96,7 +96,9 @@ export default () => {
       }
     }
 
-    web3Connect();
+    //web3Connect();
+
+
   }, []);
 
   const showModal = (index) => {
