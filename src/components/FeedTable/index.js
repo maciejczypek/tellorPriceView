@@ -128,16 +128,6 @@ export default () => {
       setSelectedID(index + 1);
       setVisible(true);
     }
-
-    // if (isMetamask) {
-    //   setSelectedID(index + 1);
-    //   setVisible(true);
-    // } else {
-    //   notification["warning"]({
-    //     message: "Metamask not found",
-    //     description: "Please install metamask on the browser!",
-    //   });
-    // }
   };
 
   const handleOk = (e) => {
