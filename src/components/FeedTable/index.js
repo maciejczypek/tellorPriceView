@@ -1,18 +1,21 @@
-import React, { useEffect, useState, Fragment } from "react";
+import React, { useEffect, useState, Fragment, useContext } from "react";
 import { Table, Button, Modal, Input, Alert, notification } from "antd";
 import axios from "axios";
 import _ from "lodash";
-import getWeb3 from "utils/getWeb3";
 import PSRs from "utils/psr";
 import TellorFund from "utils/contracts/TellorFund";
 import Lottie from "react-lottie";
 import animationData from "../../assets/Tellor__Loader.json";
+import { CurrentUserContext, Web3ModalContext } from "../../contexts/Store";
+import { createWeb3User, signInWithWeb3, w3connect } from "../../utils/auth";
 
-const { Column } = Table;
+const {Column} = Table;
 
 const contractAddress = "0xFe41Cb708CD98C5B20423433309E55b53F79134a"; //"0xc47d2339077F5aC117dD1B2953D5c54a0c0B89fa, 0xFe41Cb708CD98C5B20423433309E55b53F79134a";
 
 export default () => {
+  const [setWeb3Modal] = useContext(Web3ModalContext);
+  const [currentUser, setCurrentUser] = useContext(CurrentUserContext);
   const [priceLoading, setPriceLoading] = useState(true);
   const [totalTipsLoading, setTotalTipsLoading] = useState(true);
   const [tableData, setTableData] = useState([]);
@@ -21,23 +24,14 @@ export default () => {
   const [visible, setVisible] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [selectedID, setSelectedID] = useState(undefined);
-  const [isMetamask, setIsMetaMask] = useState(false);
+
   useEffect(() => {
     const apiPromises = [];
     const priceAPIPromises = [];
     let tempTableData = [...tableData];
-    async function web3Connect() {
-      try {
-        const web3 = await getWeb3();
-        setIsMetaMask(web3.currentProvider.isMetaMask);
-        const accounts = await web3.eth.getAccounts();
-        setAccounts(accounts);
-        const instance = await new web3.eth.Contract(
-          TellorFund.abi,
-          contractAddress
-        );
-        setContract(instance);
 
+    async function loadData() {
+      try {
         PSRs.map((type) =>
           tempTableData.push({
             type,
@@ -64,7 +58,7 @@ export default () => {
             })
           );
         });
-        Promise.all(apiPromises).then(function(values) {
+        Promise.all(apiPromises).then(function (values) {
           const totalTips = [..._.map(values, "data")];
           totalTips.map((tipObj, index) => {
             tempTableData[index].totalTip = tipObj.totalTip;
@@ -96,21 +90,54 @@ export default () => {
       }
     }
 
-    //web3Connect();
-
-
+    loadData();
   }, []);
 
-  const showModal = (index) => {
-    if (isMetamask) {
+  const showModal = async (index) => {
+    // TODO: test login when no metamask is installed
+
+    if (!currentUser) {
+      try {
+        const w3c = await signInWithWeb3();
+        const accounts = await w3c.web3.eth.getAccounts();
+
+        setAccounts(accounts);
+        setWeb3Modal(w3c);
+        const user = createWeb3User(accounts[0]);
+
+        setCurrentUser(user);
+        const instance = await new w3c.web3.eth.Contract(
+          TellorFund.abi,
+          contractAddress
+        );
+
+        setContract(instance);
+        setSelectedID(index + 1);
+        setVisible(true);
+      } catch (err) {
+        console.log('web3Modal error', err);
+      }
+    } else {
+      const w3c = await signInWithWeb3();
+      const instance = await new w3c.web3.eth.Contract(
+        TellorFund.abi,
+        contractAddress
+      );
+
+      setContract(instance);
       setSelectedID(index + 1);
       setVisible(true);
-    } else {
-      notification["warning"]({
-        message: "Metamask not found",
-        description: "Please install metamask on the browser!",
-      });
     }
+
+    // if (isMetamask) {
+    //   setSelectedID(index + 1);
+    //   setVisible(true);
+    // } else {
+    //   notification["warning"]({
+    //     message: "Metamask not found",
+    //     description: "Please install metamask on the browser!",
+    //   });
+    // }
   };
 
   const handleOk = (e) => {
@@ -144,15 +171,15 @@ export default () => {
   };
 
   if (totalTipsLoading || priceLoading)
-    return <Lottie options={lottieOptions} height={120} width={120} />;
+    return <Lottie options={lottieOptions} height={120} width={120}/>;
 
   return (
     <Fragment>
       <Table dataSource={tableData} bordered pagination={false} rowKey="type">
-        <Column title="Type" dataIndex="type" key="type" />
-        <Column title="Last Value" dataIndex="price" key="price" />
-        <Column title="Price" dataIndex="granPrice" key="granPrice" />
-        <Column title="Current Tip" dataIndex="totalTip" key="totalTip" />
+        <Column title="Type" dataIndex="type" key="type"/>
+        <Column title="Last Value" dataIndex="price" key="price"/>
+        <Column title="Price" dataIndex="granPrice" key="granPrice"/>
+        <Column title="Current Tip" dataIndex="totalTip" key="totalTip"/>
         <Column
           title=""
           key="action"
@@ -186,7 +213,7 @@ export default () => {
           <Alert
             message="Tip should be larger than 0"
             type="error"
-            style={{ marginBottom: 10 }}
+            style={{marginBottom: 10}}
           />
         )}
         <Input

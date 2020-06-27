@@ -31,7 +31,7 @@ const Store = ({children}) => {
     };
 
     if (web3Modal.cachedProvider) {
-      initCurrentUser();
+      // initCurrentUser();
     }
   }, [web3Modal, currentUser]);
 
