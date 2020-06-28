@@ -72,8 +72,7 @@ export const signInWithWeb3 = async () => {
       )}, Required network: ${getChainIdName(+process.env.REACT_APP_CHAIN_ID)}`,
     );
     throw new Error(
-      `Injected web3 chainId: ${injectedChainId}, config: ${+process.env
-        .REACT_APP_CHAIN_ID}`,
+      `Injected web3 chainId: ${injectedChainId}, config: ${+process.env.REACT_APP_CHAIN_ID}`,
     );
   }
 

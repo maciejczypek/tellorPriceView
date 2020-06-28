@@ -14,7 +14,7 @@ const {Column} = Table;
 const contractAddress = "0xFe41Cb708CD98C5B20423433309E55b53F79134a"; //"0xc47d2339077F5aC117dD1B2953D5c54a0c0B89fa, 0xFe41Cb708CD98C5B20423433309E55b53F79134a";
 
 export default () => {
-  const [setWeb3Modal] = useContext(Web3ModalContext);
+  const [web3Modal, setWeb3Modal] = useContext(Web3ModalContext);
   const [currentUser, setCurrentUser] = useContext(CurrentUserContext);
   const [priceLoading, setPriceLoading] = useState(true);
   const [totalTipsLoading, setTotalTipsLoading] = useState(true);
@@ -94,31 +94,15 @@ export default () => {
   }, []);
 
   const showModal = async (index) => {
-    // TODO: test login when no metamask is installed
-
-    if (!currentUser) {
-      try {
-        const w3c = await signInWithWeb3();
-        const accounts = await w3c.web3.eth.getAccounts();
-
-        setAccounts(accounts);
-        setWeb3Modal(w3c);
-        const user = createWeb3User(accounts[0]);
-
-        setCurrentUser(user);
-        const instance = await new w3c.web3.eth.Contract(
-          TellorFund.abi,
-          contractAddress
-        );
-
-        setContract(instance);
-        setSelectedID(index + 1);
-        setVisible(true);
-      } catch (err) {
-        console.log('web3Modal error', err);
-      }
-    } else {
+    try {
       const w3c = await signInWithWeb3();
+      const accounts = await w3c.web3.eth.getAccounts();
+
+      setAccounts(accounts);
+      setWeb3Modal(w3c);
+      const user = createWeb3User(accounts[0]);
+
+      setCurrentUser(user);
       const instance = await new w3c.web3.eth.Contract(
         TellorFund.abi,
         contractAddress
@@ -127,10 +111,13 @@ export default () => {
       setContract(instance);
       setSelectedID(index + 1);
       setVisible(true);
+    } catch (error) {
+      console.log('web3Modal error', error);
     }
   };
 
   const handleOk = (e) => {
+    console.log(contract.methods);
     if (tip >= 0) {
       contract.methods
         .addTip(selectedID, tip)
