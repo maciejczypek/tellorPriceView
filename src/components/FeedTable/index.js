@@ -7,7 +7,7 @@ import TellorFund from "utils/contracts/TellorFund";
 import Lottie from "react-lottie";
 import animationData from "../../assets/Tellor__Loader.json";
 import { CurrentUserContext, Web3ModalContext } from "../../contexts/Store";
-import { createWeb3User, signInWithWeb3, w3connect } from "../../utils/auth";
+import { createWeb3User, signInWithWeb3 } from "../../utils/auth";
 
 const {Column} = Table;
 
@@ -117,7 +117,6 @@ export default () => {
   };
 
   const handleOk = (e) => {
-    console.log(contract.methods);
     if (tip >= 0) {
       contract.methods
         .addTip(selectedID, tip)
